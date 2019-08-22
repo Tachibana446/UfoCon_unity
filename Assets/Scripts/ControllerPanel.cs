@@ -1,5 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +11,23 @@ public class ControllerPanel : MonoBehaviour
 
     private Text portnameText = null;
     private Text levelText = null;
+    /// <summary>
+    /// 動作記録用ボタン
+    /// </summary>
+    public Button RecButton = null;
+    private Text recButtonText = null;
+    /// <summary>
+    /// 現在録画中か
+    /// </summary>
+    private bool isRecording = false;
+    /// <summary>
+    /// 録画中の現在時刻
+    /// </summary>
+    private TimeSpan nowRecTime;
+    /// <summary>
+    /// 記録中のデータ
+    /// </summary>
+    private List<RecordData> recordList = new List<RecordData>();
 
     /// <summary>
     /// 現在回転している方向
@@ -47,6 +67,8 @@ public class ControllerPanel : MonoBehaviour
         portnameText = obj.GetComponent<Text>();
         levelText = GameObject.Find("NowLevelText")?.GetComponent<Text>();
 
+        recButtonText = RecButton?.gameObject.GetComponentInChildren<Text>();
+
         UfoUtil.Singleton.FindPort();
         portnameText.text = UfoUtil.Singleton.PortName;
     }
@@ -75,6 +97,7 @@ public class ControllerPanel : MonoBehaviour
     public void OnRightButtonClick()
     {
         UfoUtil.Singleton.SendData(true, nowLevel);
+        nowDirection = Direction.Right;
         isMoving = true;
     }
 
@@ -84,6 +107,7 @@ public class ControllerPanel : MonoBehaviour
     public void OnLeftButtonClick()
     {
         UfoUtil.Singleton.SendData(false, nowLevel);
+        nowDirection = Direction.Left;
         isMoving = true;
     }
 
@@ -102,15 +126,114 @@ public class ControllerPanel : MonoBehaviour
         nowLevel -= 10;
     }
 
+    /// <summary>
+    /// 録画開始・停止
+    /// </summary>
+    public void OnRecButtonClick()
+    {
+        isRecording = !isRecording;
+        // 文字のトグル
+        if (recButtonText != null)
+        {
+            if (isRecording)
+                recButtonText.text = "■";
+            else
+                recButtonText.text = "●";
+        }
+        // 新たに記録を開始するとき経過時刻をリセット
+        if (isRecording)
+            nowRecTime = TimeSpan.FromMilliseconds(0);
+    }
+
+    /// <summary>
+    /// CSVに書きこむボタン
+    /// </summary>
+    public void OnSaveCsvButton()
+    {
+        SaveRecordCSV("./sample_data.csv");
+    }
+
+    public void OnOpenCsvButton()
+    {
+        System.Diagnostics.Process.Start("code ./sample_data.csv");
+    }
+
     // Update is called once per frame
     void Update()
     {
-
-
+        // 記録
+        if (isRecording)
+        {
+            nowRecTime.Add(TimeSpan.FromSeconds(Time.deltaTime));
+            // 変更があればデータとして追加
+            int nowDeciSec = (int)nowRecTime.TotalSeconds * 10;
+            var current = new RecordData(nowDeciSec, nowDirection == Direction.Right, nowLevel);
+            if (recordList.Count == 0 || !recordList.Last().LevelEqual(current))
+                recordList.Add(current);
+        }
     }
 
+    /// <summary>
+    /// 記録中のファイルをCSVに保存
+    /// </summary>
+    /// <param name="filePath"></param>
+    void SaveRecordCSV(string filePath)
+    {
+        using (var sw = new StreamWriter(filePath))
+        {
+            foreach (var data in recordList)
+            {
+                sw.WriteLine(data.ToCSV());
+            }
+        }
+    }
+
+    /// <summary>
+    /// 方向
+    /// </summary>
     enum Direction
     {
         Right, Left
+    }
+
+    /// <summary>
+    /// 記録用データ構造
+    /// </summary>
+    class RecordData
+    {
+        /// <summary>
+        /// デシ秒
+        /// </summary>
+        public int Time { get; set; }
+        /// <summary>
+        /// 強さ0 ~ 100
+        /// </summary>
+        public int Level { get; set; }
+        /// <summary>
+        /// 正回転かどうか
+        /// </summary>
+        public bool IsPositive { get; set; }
+
+        public RecordData(int time, bool isPositive, int level)
+        {
+            Time = time;
+            IsPositive = isPositive;
+            Level = level;
+        }
+
+        /// <summary>
+        /// 時間以外（強さと方向）が一致しているかどうか
+        /// </summary>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public bool LevelEqual(RecordData b)
+        {
+            return Level == b.Level && IsPositive == b.IsPositive;
+        }
+
+        public string ToCSV()
+        {
+            return Time.ToString() + "," + (IsPositive ? "0" : "1") + "," + Level.ToString();
+        }
     }
 }
