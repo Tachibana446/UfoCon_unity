@@ -29,6 +29,8 @@ public class ControllerPanel : MonoBehaviour
     /// </summary>
     private List<RecordData> recordList = new List<RecordData>();
 
+    public List<RecordData> RecordList { get { return recordList; } }
+
     /// <summary>
     /// 現在回転している方向
     /// </summary>
@@ -59,6 +61,17 @@ public class ControllerPanel : MonoBehaviour
         }
     }
     private int _nowLevel = 0;
+
+    static string SaveFolder = "";
+
+    static ControllerPanel()
+    {
+#if UNITY_EDITOR
+        SaveFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/UfoCon";
+#else
+        SaveFolder = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');;
+#endif
+    }
 
     // Use this for initialization
     void Start()
@@ -155,7 +168,7 @@ public class ControllerPanel : MonoBehaviour
 
     public void OnOpenCsvButton()
     {
-        System.Diagnostics.Process.Start("code ./sample_data.csv");
+        //  System.Diagnostics.Process.Start("code ./sample_data.csv");
     }
 
     // Update is called once per frame
@@ -164,21 +177,37 @@ public class ControllerPanel : MonoBehaviour
         // 記録
         if (isRecording)
         {
-            nowRecTime.Add(TimeSpan.FromSeconds(Time.deltaTime));
+            nowRecTime += TimeSpan.FromSeconds(Time.deltaTime);
             // 変更があればデータとして追加
-            int nowDeciSec = (int)nowRecTime.TotalSeconds * 10;
+            int nowDeciSec = (int)(nowRecTime.TotalSeconds * 10);
             var current = new RecordData(nowDeciSec, nowDirection == Direction.Right, nowLevel);
-            if (recordList.Count == 0 || !recordList.Last().LevelEqual(current))
+            var prev = recordList.LastOrDefault();
+            if (recordList.Count == 0 || !prev.LevelEqual(current))
                 recordList.Add(current);
         }
     }
 
     /// <summary>
+    /// ファイル名に保存用ディレクトリのパスを足して返す
+    /// </summary>
+    /// <param name="filename"></param>
+    /// <returns></returns>
+    static string GetSaveFilePath(string filename)
+    {
+        foreach (var c in Path.GetInvalidFileNameChars())
+        {
+            filename = filename.Replace(c, '_');
+        }
+        return SaveFolder.TrimEnd('/') + "/" + filename;
+    }
+
+    /// <summary>
     /// 記録中のファイルをCSVに保存
     /// </summary>
-    /// <param name="filePath"></param>
-    void SaveRecordCSV(string filePath)
+    /// <param name="filename"></param>
+    void SaveRecordCSV(string filename)
     {
+        string filePath = GetSaveFilePath(filename);
         using (var sw = new StreamWriter(filePath))
         {
             foreach (var data in recordList)
@@ -199,7 +228,7 @@ public class ControllerPanel : MonoBehaviour
     /// <summary>
     /// 記録用データ構造
     /// </summary>
-    class RecordData
+    public class RecordData
     {
         /// <summary>
         /// デシ秒
@@ -213,6 +242,10 @@ public class ControllerPanel : MonoBehaviour
         /// 正回転かどうか
         /// </summary>
         public bool IsPositive { get; set; }
+        /// <summary>
+        /// -100～+100で表した強さ
+        /// </summary>
+        public int SignedLevel { get { return (IsPositive ? 1 : -1) * Level; } }
 
         public RecordData(int time, bool isPositive, int level)
         {
@@ -228,7 +261,12 @@ public class ControllerPanel : MonoBehaviour
         /// <returns></returns>
         public bool LevelEqual(RecordData b)
         {
-            return Level == b.Level && IsPositive == b.IsPositive;
+            return SignedLevel == b.SignedLevel;
+        }
+
+        public override string ToString()
+        {
+            return $"{Time}:{(IsPositive ? "+" : "-")}{Level}";
         }
 
         public string ToCSV()
