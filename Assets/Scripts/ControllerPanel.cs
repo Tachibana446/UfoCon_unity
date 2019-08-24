@@ -163,7 +163,17 @@ public class ControllerPanel : MonoBehaviour
     /// </summary>
     public void OnSaveCsvButton()
     {
-        SaveRecordCSV("./sample_data.csv");
+        var inputField = GameObject.Find("CsvFileNameInputField").GetComponent<InputField>();
+        string filename = inputField.text;
+        // 空白の場合デフォルト名
+        if (string.IsNullOrWhiteSpace(filename))
+            filename = "record.csv";
+        // 拡張子がついていない場合付ける
+        if (!filename.EndsWith(".csv"))
+            filename += ".csv";
+        // TODO:上書き確認
+        // if (File.Exists(GetSaveFilePath(filename))
+        SaveRecordCSV(filename);
     }
 
     public void OnOpenCsvButton()
