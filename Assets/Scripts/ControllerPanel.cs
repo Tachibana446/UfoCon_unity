@@ -263,7 +263,7 @@ public class ControllerPanel : MonoBehaviour
     /// ステータスバー的なヤツに文字を表示
     /// </summary>
     /// <param name="text"></param>
-    private void ShowStatusText(string text)
+    public static void ShowStatusText(string text)
     {
         StatusText.text = text;
     }
