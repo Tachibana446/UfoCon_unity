@@ -182,6 +182,9 @@ public class ControllerPanel : MonoBehaviour
         // 拡張子がついていない場合付ける
         if (!filename.EndsWith(".csv"))
             filename += ".csv";
+        // ファイル名が補完された時のためにテキストボックスを更新
+        inputField.text = filename;
+
         // 上書き確認
         if (File.Exists(GetSaveFilePath(filename)))
         {
