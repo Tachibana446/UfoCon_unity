@@ -8,13 +8,27 @@ public class MediaControllPanel : MonoBehaviour
 {
 
     OpenFileDialog dialog;
+    /// <summary>
+    /// 音声ファイルのパス
+    /// </summary>
     string filePath;
+    /// <summary>
+    /// ファイルパスを表示するInputField
+    /// </summary>
     InputField FilePathInput = null;
+    /// <summary>
+    /// 音声
+    /// </summary>
     AudioSource audioSource = null;
+    /// <summary>
+    /// 現在の再生時間を表示するテキスト
+    /// </summary>
+    Text positionText = null;
 
     // Use this for initialization
     void Start()
     {
+        positionText = gameObject.transform.Find("PositionText")?.GetComponent<Text>();
         audioSource = gameObject.AddComponent<AudioSource>();
         FilePathInput = gameObject.GetComponentInChildren<InputField>();
     }
@@ -22,7 +36,14 @@ public class MediaControllPanel : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        // 再生時間を表示
+        if (audioSource?.isPlaying == true && positionText != null)
+        {
+            var ts = System.TimeSpan.FromSeconds(audioSource.time);
+            string s1 = ts.ToString(@"hh\:mm\:ss\.f");
+            string s2 = ((int)(ts.TotalSeconds * 10)).ToString("D4");
+            positionText.text = $"{s1}\n({s2})";
+        }
     }
 
     /// <summary>
@@ -62,6 +83,14 @@ public class MediaControllPanel : MonoBehaviour
     public void OnPauseButtonClick()
     {
         audioSource?.Pause();
+    }
+    /// <summary>
+    /// 再生時間のスライダーが移動された時
+    /// </summary>
+    /// <param name="pos"></param>
+    public void OnChangePositionSlider(float pos)
+    {
+        audioSource.time = pos;
     }
 
     /// <summary>
