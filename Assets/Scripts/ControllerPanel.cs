@@ -64,6 +64,11 @@ public class ControllerPanel : MonoBehaviour
 
     static string SaveFolder = "";
 
+    /// <summary>
+    /// ステータスバー的なテキスト
+    /// </summary>
+    static Text StatusText = null;
+
     static ControllerPanel()
     {
 #if UNITY_EDITOR
@@ -71,6 +76,10 @@ public class ControllerPanel : MonoBehaviour
 #else
         SaveFolder = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');;
 #endif
+    }
+
+    private void Awake()
+    {
     }
 
     // Use this for initialization
@@ -84,6 +93,8 @@ public class ControllerPanel : MonoBehaviour
 
         UfoUtil.Singleton.FindPort();
         portnameText.text = UfoUtil.Singleton.PortName;
+        // UI要素取得
+        StatusText = GameObject.FindGameObjectWithTag("StatusText")?.GetComponent<Text>();
     }
 
     /// <summary>
@@ -171,9 +182,26 @@ public class ControllerPanel : MonoBehaviour
         // 拡張子がついていない場合付ける
         if (!filename.EndsWith(".csv"))
             filename += ".csv";
-        // TODO:上書き確認
-        // if (File.Exists(GetSaveFilePath(filename))
-        SaveRecordCSV(filename);
+        // 上書き確認
+        if (File.Exists(GetSaveFilePath(filename)))
+        {
+            var dialog = MyDialog.CreateDialog(gameObject.transform.root, "上書き確認", "このファイルは既に存在しますが上書きしますか？");
+            dialog.OnClosing.Add(isok =>
+           {
+               if (isok == true)
+               {
+                   SaveRecordCSV(filename);
+               }
+               else
+               {
+                   ShowStatusText("保存をキャンセルしました");
+               }
+           });
+        }
+        else
+        {
+            SaveRecordCSV(filename);
+        }
     }
 
     public void OnOpenCsvButton()
@@ -225,6 +253,16 @@ public class ControllerPanel : MonoBehaviour
                 sw.WriteLine(data.ToCSV());
             }
         }
+        ShowStatusText($"CSVを保存({filePath})");
+    }
+
+    /// <summary>
+    /// ステータスバー的なヤツに文字を表示
+    /// </summary>
+    /// <param name="text"></param>
+    private void ShowStatusText(string text)
+    {
+        StatusText.text = text;
     }
 
     /// <summary>
