@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +15,7 @@ public class ControllerPanel : MonoBehaviour
     /// <summary>
     /// 動作記録用ボタン
     /// </summary>
-    public Button RecButton = null;
+    public UnityEngine.UI.Button RecButton = null;
     private Text recButtonText = null;
     /// <summary>
     /// 現在録画中か
@@ -39,6 +40,10 @@ public class ControllerPanel : MonoBehaviour
     /// 現在回転中かどうか
     /// </summary>
     private bool isMoving;
+    /// <summary>
+    /// ファイルダイアログが最後に開いたフォルダ
+    /// </summary>
+    private string lastDialogOpenedPath = "";
 
     /// <summary>
     /// 現在のUFOのパワー
@@ -170,6 +175,53 @@ public class ControllerPanel : MonoBehaviour
     }
 
     /// <summary>
+    /// CSVを開くボタン
+    /// </summary>
+    public void OnOpenCSVButtonClick()
+    {
+        // 既にデータがあれば上書き確認
+        if (recordList.Count > 0)
+        {
+            var dialog = MyDialog.CreateDialog(gameObject.transform.root, "読み込み確認",
+                "新たにCSVをロードすると現在編集中のデータは破棄されますがよろしいですか？");
+            dialog.OnClosing.Add(ok =>
+            {
+                if (ok == true)
+                    ShowAndLoadCSVDialog();
+                else
+                    ShowStatusText("CSV読み込みをキャンセルしました。");
+            });
+        }
+        else
+        {
+            ShowAndLoadCSVDialog();
+        }
+
+    }
+    /// <summary>
+    /// ファイルダイアログを開き、CSVを読み込んでデータを取得する
+    /// </summary>
+    private void ShowAndLoadCSVDialog()
+    {
+        var ofd = new OpenFileDialog();
+        ofd.Filter = "csv files (*.csv)|*.csv|all files (*.*)|*.*";
+        ofd.Title = "CSVファイルを選択";
+        if (lastDialogOpenedPath == "")
+            ofd.InitialDirectory = SaveFolder;
+        else
+            ofd.InitialDirectory = lastDialogOpenedPath;
+
+        var resu = ofd.ShowDialog();
+        if (resu == DialogResult.OK)
+        {
+            string filePath = ofd.FileName.Replace(@"\", "/");
+            lastDialogOpenedPath = Path.GetDirectoryName(filePath);
+            LoadRecordsCSV(filePath);
+        }
+    }
+
+
+    /// <summary>
     /// CSVに書きこむボタン
     /// </summary>
     public void OnSaveCsvButton()
@@ -205,11 +257,6 @@ public class ControllerPanel : MonoBehaviour
         {
             SaveRecordCSV(filename);
         }
-    }
-
-    public void OnOpenCsvButton()
-    {
-        //  System.Diagnostics.Process.Start("code ./sample_data.csv");
     }
 
     // Update is called once per frame
@@ -257,6 +304,35 @@ public class ControllerPanel : MonoBehaviour
             }
         }
         ShowStatusText($"CSVを保存({filePath})");
+    }
+
+    /// <summary>
+    /// CSVからRecordを読み込み
+    /// </summary>
+    /// <param name="filename"></param>
+    void LoadRecordsCSV(string filename)
+    {
+        recordList.Clear();
+        foreach (var line in File.ReadLines(filename))
+        {
+            var sp = line.Split(',');
+            if (sp.Length < 3) continue;
+            int t = 0, f = 0, l = 0;
+            if (int.TryParse(sp[0], out t) && int.TryParse(sp[1], out f) && int.TryParse(sp[2], out l))
+            {
+                var data = new RecordData(t, f == 0, l);
+                recordList.Add(data);
+            }
+        }
+        if (recordList.Count > 0)
+        {
+            recordList.Sort((a, b) => a.Time - b.Time);
+            // ステータスバー
+            ShowStatusText("CSVを読み込みました");
+            // テキストフィールド
+            var inputField = GameObject.Find("CsvFileNameInputField").GetComponent<InputField>();
+            inputField.text = filename;
+        }
     }
 
     /// <summary>

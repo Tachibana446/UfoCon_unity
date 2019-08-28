@@ -549,7 +549,7 @@ RectTransform:
   m_GameObject: {fileID: 226223756}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.5, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_Children: []
   m_Father: {fileID: 701054980}
   m_RootOrder: 0
@@ -580,10 +580,10 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
+    m_FontSize: 28
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 4
+    m_MinSize: 2
     m_MaxSize: 48
     m_Alignment: 4
     m_AlignByGeometry: 0
@@ -591,7 +591,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "CSV\u3092\u958B\u304F\uFF08\u30C7\u30D0\u30C3\u30B0\uFF09"
+  m_Text: "CSV\u3092\u958B\u304F"
 --- !u!222 &226223759
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1322,10 +1322,10 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
+    m_FontSize: 28
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 4
+    m_MinSize: 2
     m_MaxSize: 48
     m_Alignment: 4
     m_AlignByGeometry: 0
@@ -1640,7 +1640,7 @@ GameObject:
   - component: {fileID: 701054982}
   - component: {fileID: 701054981}
   m_Layer: 5
-  m_Name: CsvOpenButton (1)
+  m_Name: CsvOpenButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1662,8 +1662,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 88.899994, y: 27.000015}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: 295.2, y: 72.696}
+  m_SizeDelta: {x: 79.525, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &701054981
 MonoBehaviour:
@@ -1705,7 +1705,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 324245523}
-        m_MethodName: OnOpenCsvButton
+        m_MethodName: OnOpenCSVButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2043,7 +2043,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: New Text
+  m_Text: "\u30C7\u30FC\u30BF\u4EF6\u6570"
 --- !u!222 &808628007
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3695,8 +3695,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 251.2, y: -64.1}
-  m_SizeDelta: {x: 160, y: 30}
+  m_AnchoredPosition: {x: 210.97, y: -64.1}
+  m_SizeDelta: {x: 79.53, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1727959268
 MonoBehaviour:
