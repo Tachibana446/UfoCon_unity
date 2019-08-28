@@ -19,15 +19,12 @@ public class MediaControllPanel : MonoBehaviour
     /// <summary>
     /// 音声
     /// </summary>
-    AudioSource audioSource = null;
+    public AudioSource audioSource { get; private set; } = null;
     /// <summary>
     /// 現在の再生時間を表示するテキスト
     /// </summary>
     Text positionText = null;
-    /// <summary>
-    /// 前フレーム時点での再生位置
-    /// </summary>
-    float prevTime = 0;
+    
 
     // Use this for initialization
     void Start()
@@ -50,13 +47,6 @@ public class MediaControllPanel : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 曲に合わせてデータ実行
-    /// </summary>
-    private void MoveUfoByAudio()
-    {
-
-    }
 
     /// <summary>
     /// ファイルを開くボタンをクリックした

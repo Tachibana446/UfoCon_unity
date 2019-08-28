@@ -33,6 +33,11 @@ public class ControllerPanel : MonoBehaviour
     public List<RecordData> RecordList { get { return recordList; } }
 
     /// <summary>
+    /// 音声を持っているパネル
+    /// </summary>
+    private MediaControllPanel mediaPanel = null;
+
+    /// <summary>
     /// 現在回転している方向
     /// </summary>
     private Direction nowDirection = Direction.Right;
@@ -74,6 +79,11 @@ public class ControllerPanel : MonoBehaviour
     /// </summary>
     static Text StatusText = null;
 
+    /// <summary>
+    /// 前フレーム時点での再生位置
+    /// </summary>
+    float prevTime = 0;
+
     static ControllerPanel()
     {
 #if UNITY_EDITOR
@@ -100,7 +110,11 @@ public class ControllerPanel : MonoBehaviour
         portnameText.text = UfoUtil.Singleton.PortName;
         // UI要素取得
         StatusText = GameObject.FindGameObjectWithTag("StatusText")?.GetComponent<Text>();
+        mediaPanel = GameObject.FindGameObjectWithTag("MediaControllPanel")?.GetComponent<MediaControllPanel>();
     }
+
+
+
 
     /// <summary>
     /// ポートを探索
@@ -273,6 +287,30 @@ public class ControllerPanel : MonoBehaviour
             if (recordList.Count == 0 || !prev.LevelEqual(current))
                 recordList.Add(current);
         }
+        // 音声に合わせて実行
+        MoveUfoByAudio();
+    }
+
+    /// <summary>
+    /// 曲に合わせてデータ実行
+    /// </summary>
+    private void MoveUfoByAudio()
+    {
+        int nowTime = 0;
+        if (mediaPanel?.audioSource?.isPlaying == true)
+        {
+            nowTime = (int)(TimeSpan.FromSeconds(mediaPanel.audioSource.time).TotalSeconds * 10);
+
+            // 巻き戻しが行われていた場合何もしない
+            if (prevTime < nowTime)
+            {
+                // 前フレームと現在の再生位置の間に時間指定されたデータがあれば実行
+                var data = recordList.LastOrDefault(d => prevTime < d.Time && d.Time <= nowTime);
+                if (data != null)
+                    UfoUtil.Singleton.SendData(data.IsPositive, data.Level);
+            }
+        }
+        prevTime = nowTime;
     }
 
     /// <summary>
