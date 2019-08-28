@@ -24,7 +24,14 @@ public class MediaControllPanel : MonoBehaviour
     /// 現在の再生時間を表示するテキスト
     /// </summary>
     Text positionText = null;
-    
+    /// <summary>
+    /// 現在の再生位置を表すスライダー
+    /// </summary>
+    Slider positionSlider = null;
+    /// <summary>
+    /// スライダーのValueChangedイベントがユーザーの手で起こされたのかを知るためのフラグ
+    /// </summary>
+    bool isSliderChangedByCode = false;
 
     // Use this for initialization
     void Start()
@@ -32,18 +39,28 @@ public class MediaControllPanel : MonoBehaviour
         positionText = gameObject.transform.Find("PositionText")?.GetComponent<Text>();
         audioSource = gameObject.AddComponent<AudioSource>();
         FilePathInput = gameObject.GetComponentInChildren<InputField>();
+        positionSlider = gameObject.transform.Find("PositionSlider")?.GetComponent<Slider>();
     }
 
     // Update is called once per frame
     void Update()
     {
         // 再生時間を表示
-        if (audioSource?.isPlaying == true && positionText != null)
+        if (audioSource?.isPlaying == true)
         {
-            var ts = System.TimeSpan.FromSeconds(audioSource.time);
-            string s1 = ts.ToString(@"hh\:mm\:ss\.f");
-            string s2 = ((int)(ts.TotalSeconds * 10)).ToString("D4");
-            positionText.text = $"{s1}\n({s2})";
+            if (positionText != null)
+            {
+                var ts = System.TimeSpan.FromSeconds(audioSource.time);
+                string s1 = ts.ToString(@"hh\:mm\:ss\.f");
+                string s2 = ((int)(ts.TotalSeconds * 10)).ToString("D4");
+                positionText.text = $"{s1}\n({s2})";
+            }
+            // スライダを更新
+            if (positionSlider != null)
+            {
+                isSliderChangedByCode = true;
+                positionSlider.value = audioSource.time;
+            }
         }
     }
 
@@ -91,6 +108,11 @@ public class MediaControllPanel : MonoBehaviour
     /// <param name="pos"></param>
     public void OnChangePositionSlider(float pos)
     {
+        if (isSliderChangedByCode)
+        {
+            isSliderChangedByCode = false;
+            return;
+        }
         audioSource.time = pos;
     }
 
@@ -111,6 +133,7 @@ public class MediaControllPanel : MonoBehaviour
                 ControllerPanel.ShowStatusText("音声ファイルの読み込みに失敗");
                 yield break;
             }
+            positionSlider.maxValue = audioSource.clip.length; // スライダーの最大値を指定
             ControllerPanel.ShowStatusText($"{filePath.Replace("\n", "")}をオープン");
 
         }
